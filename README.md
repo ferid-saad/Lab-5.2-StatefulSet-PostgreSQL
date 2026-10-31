@@ -151,5 +151,9 @@ k run client --rm -it --image=postgres:16-alpine --restart=Never \
 
 **Points de contrôle :**
 - [x] `nslookup db` renvoie l'adresse IP du Pod `db-0`
+![nslookup](captures/etape5-nslookup.png)
+
 - [x] Le client se connecte avec le nom `db` et obtient `2`
+
+![nslookup](captures/etape5-postgreSQL.png)
 
