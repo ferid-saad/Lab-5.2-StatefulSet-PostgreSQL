@@ -104,3 +104,5 @@ k exec db-0 -- psql -U appuser -d appdb -c "SELECT * FROM taches;"
 **Point de contrôle :**
 - [x] La requête `SELECT` renvoie deux lignes
 
+![création de table](captures/etape2-creation-table.png)
+
