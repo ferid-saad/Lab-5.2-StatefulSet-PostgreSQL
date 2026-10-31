@@ -74,3 +74,20 @@ df -h /
 
 **À retenir :** avec `local-path`, un volume est lié à un seul nœud : si ce nœud est indisponible ou sous pression disque, le Pod reste `Pending`.
 
+
+### Second problème : initialisation interrompue
+
+**Symptôme :** une fois `db-0` en `Running`, les logs répétaient chaque minute `FATAL: "base/1" is not a valid data directory` et `File "base/1/PG_VERSION" is missing`, alors que `pg_isready` répondait.
+
+**Cause :** le premier démarrage de PostgreSQL avait été interrompu en pleine initialisation (Pod évincé sous la pression disque), laissant un volume partiellement initialisé.
+
+**Résolution :** suppression du StatefulSet et du PVC `data-db-0` (aucune donnée à ce stade), puis `k apply -f db.yaml` pour repartir d'un volume vide. Les logs indiquent ensuite `PostgreSQL init process complete` et plus aucune erreur `FATAL`.
+
+```bash
+k delete statefulset db
+k delete pvc data-db-0
+k apply -f db.yaml
+```
+
+**À retenir :** un volume dont l'initialisation a été interrompue doit être recréé, car PostgreSQL ne répare pas un `initdb` incomplet.
+
