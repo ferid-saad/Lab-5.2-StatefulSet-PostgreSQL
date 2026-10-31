@@ -119,9 +119,10 @@ k exec db-0 -- psql -U appuser -d appdb -c "SELECT * FROM taches;"
 k get pod db-0 -o wide
 k get pvc
 ```
-
+![delete-create](captures/etape4-delete-create-meme-nom.png)
 **Constat :** le Pod recréé s'appelle toujours `db-0`, s'exécute sur le même nœud et se rattache au même PVC `data-db-0`. Les deux lignes de la table `taches` sont toujours présentes.
 
+![persistance](captures/etape4-persistance.png)
 **Points de contrôle :**
 - [x] Le Pod recréé porte le même nom `db-0`
 - [x] Les deux lignes sont toujours présentes
