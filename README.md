@@ -34,3 +34,5 @@ k get configmap,secret
 **Point de contrôle :**
 - [x] Le ConfigMap `app-config` et le Secret `db-credentials` existent
 
+![configmap-secret-existent](captures/etape1-configmap-secret.png)
+
