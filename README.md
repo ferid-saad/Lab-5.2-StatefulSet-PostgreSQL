@@ -91,3 +91,16 @@ k apply -f db.yaml
 
 **À retenir :** un volume dont l'initialisation a été interrompue doit être recréé, car PostgreSQL ne répare pas un `initdb` incomplet.
 
+## Étape 3 : Créer des données
+
+Création de la table `taches` dans la base `appdb` et insertion de deux lignes.
+
+```bash
+k exec db-0 -- psql -U appuser -d appdb -c "CREATE TABLE taches (id serial PRIMARY KEY, titre text NOT NULL, faite boolean DEFAULT false);"
+k exec db-0 -- psql -U appuser -d appdb -c "INSERT INTO taches (titre) VALUES ('Apprendre les StatefulSets'), ('Tester la persistance');"
+k exec db-0 -- psql -U appuser -d appdb -c "SELECT * FROM taches;"
+```
+
+**Point de contrôle :**
+- [x] La requête `SELECT` renvoie deux lignes
+
