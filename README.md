@@ -222,3 +222,28 @@ k get pv
 
 La suppression du namespace supprime aussi les PVC, et les PV local-path disparaissent avec eux. Aucun volume de ce lab ne subsiste dans `k get pv`.
 
+## Étape 7 : Comprendre le rôle du mot de passe initial
+
+Modification du mot de passe dans le Secret `db-credentials`, redémarrage du StatefulSet, puis test des deux mots de passe depuis un client.
+
+```bash
+k create secret generic db-credentials \
+  --from-literal=POSTGRES_USER=appuser \
+  --from-literal=POSTGRES_PASSWORD='Nouveau-456' \
+  --dry-run=client -o yaml | k apply -f -
+k rollout restart statefulset db
+k rollout status statefulset db
+k exec db-0 -- pg_isready -U appuser -d appdb
+k run client --rm -it --image=postgres:16-alpine --restart=Never \
+  --env="PGPASSWORD=Nouveau-456" -- psql -h db -U appuser -d appdb -c "SELECT 1;"
+k run client --rm -it --image=postgres:16-alpine --restart=Never \
+  --env="PGPASSWORD=ChangeMe-123" -- psql -h db -U appuser -d appdb -c "SELECT 1;"
+```
+
+**Constat :** le nouveau mot de passe est refusé et l'ancien fonctionne encore. PostgreSQL ne lit `POSTGRES_PASSWORD` qu'à la première initialisation d'un volume vide : ensuite, le mot de passe est enregistré dans la base elle-même. Modifier le Secret ne suffit donc pas ; il faut changer le mot de passe avec une commande SQL (`ALTER USER appuser PASSWORD '...'`).
+
+**Points de contrôle :**
+- [x] Le Pod `db-0` a redémarré avec les données intactes
+- [x] Le nouveau mot de passe est refusé, l'ancien est accepté
+- [x] Je peux expliquer pourquoi modifier le Secret ne suffit pas
+
