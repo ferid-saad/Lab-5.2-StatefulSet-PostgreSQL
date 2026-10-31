@@ -191,3 +191,24 @@ k get pvc
 ![supprition db1](captures/etape6-supprition-pvc.png)
 
 
+## Questions de réflexion
+
+**1. Pourquoi le Pod recréé s'appelle-t-il encore `db-0` et retrouve-t-il ses données ?**
+Un StatefulSet donne à ses Pods une identité stable : un nom ordonné et un volume associé. Quand `db-0` est supprimé, un Pod de même nom est recréé et rattaché au même PVC `data-db-0`, donc aux mêmes données.
+
+**2. Quelle est la particularité d'un Service headless et pourquoi le préfère-t-on pour un StatefulSet ?**
+Il n'a pas d'adresse virtuelle (`clusterIP: None`) : le DNS renvoie directement les adresses des Pods, et chaque Pod a un nom DNS stable (`db-0.db`). C'est utile quand on doit distinguer les membres d'un groupe, par exemple une base répliquée, et que l'IP d'un Pod change à chaque recréation.
+
+**3. Pourquoi la table `taches` n'existait-elle pas dans `db-1` ?**
+Un StatefulSet ne réplique pas les données : chaque Pod a son propre volume et sa propre base. La réplication doit être configurée dans la base elle-même.
+
+**4. Pourquoi le PVC `data-db-1` a-t-il subsisté après la réduction à un réplica ?**
+Kubernetes ne supprime pas automatiquement les PVC d'un StatefulSet, pour éviter de détruire des données par erreur. Il faut les supprimer explicitement.
+
+**5. Pourquoi le changement du mot de passe dans le Secret n'a-t-il pas modifié celui de la base ?**
+`POSTGRES_PASSWORD` n'est utilisée qu'à la création de la base, sur un volume vide. Une fois la base initialisée, le mot de passe est conservé dans ses données ; il faut le modifier avec une commande SQL (`ALTER USER`).
+
+## Conclusion
+
+Ce lab a montré qu'un StatefulSet associe à chaque Pod une identité stable (nom, volume, nom DNS), ce qui permet à PostgreSQL de conserver ses données malgré la recréation du Pod. Il a aussi mis en évidence trois limites : pas de réplication automatique des données, PVC conservés après une réduction d'échelle, et mot de passe initial non relu après l'initialisation. Deux incidents liés à la pression disque des workers ont été diagnostiqués et corrigés (voir étape 2).
+
