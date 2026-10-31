@@ -157,3 +157,30 @@ k run client --rm -it --image=postgres:16-alpine --restart=Never \
 
 ![nslookup](captures/etape5-postgreSQL.png)
 
+## Étape 6 : Passer à deux réplicas
+
+Passage du StatefulSet à 2 réplicas pour observer la création ordonnée des Pods et l'indépendance des volumes, puis retour à 1 réplica.
+
+```bash
+k scale statefulset db --replicas=2
+k get pods -w
+k get pvc
+k exec db-1 -- psql -U appuser -d appdb -c "\dt"
+k exec db-0 -- psql -U appuser -d appdb -c "\dt"
+k scale statefulset db --replicas=1
+k get pods
+k get pvc
+k delete pvc data-db-1
+k get pvc
+```
+
+**Constat :**
+- `db-1` n'a démarré qu'après que `db-0` était prêt (création ordonnée).
+- `db-1` a son propre PVC `data-db-1` et sa base est vide : un StatefulSet ne réplique pas les données. La réplication doit être configurée dans la base elle-même.
+- Après la réduction à un réplica, `data-db-1` existait toujours : Kubernetes ne supprime pas automatiquement les PVC d'un StatefulSet, pour éviter de détruire des données par erreur. Il a fallu le supprimer manuellement.
+
+**Points de contrôle :**
+- [x] `db-1` a été créé après `db-0` et avec un PVC distinct
+- [x] La table `taches` n'existait pas dans `db-1`
+- [x] Après la réduction à un réplica, `data-db-1` subsistait jusqu'à sa suppression manuelle
+
