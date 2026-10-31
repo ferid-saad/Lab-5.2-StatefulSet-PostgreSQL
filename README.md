@@ -128,3 +128,28 @@ k get pvc
 - [x] Les deux lignes sont toujours présentes
 - [x] Le Pod s'exécute sur le même nœud, avec le même PVC `data-db-0`
 
+## Étape 5 : Joindre la base par son nom DNS
+
+Interrogation du DNS depuis un Pod temporaire, puis connexion avec un client PostgreSQL via le nom du Service headless `db`. L'IP de `db-0` ayant changé après sa recréation (`10.42.2.243` puis `10.42.2.244`), c'est le nom DNS qui garantit la joignabilité.
+
+```bash
+k run test --rm -it --image=busybox:1.36 --restart=Never -- nslookup db
+k run test --rm -it --image=busybox:1.36 --restart=Never -- nslookup db-0.db.tp-k8s.svc.cluster.local
+k run client --rm -it --image=postgres:16-alpine --restart=Never \
+  --env="PGPASSWORD=ChangeMe-123" -- \
+  psql -h db -U appuser -d appdb -c "SELECT count(*) FROM taches;"
+```
+
+**Constat :**
+- `nslookup db` renvoie directement l'IP du Pod `db-0` (`10.42.2.244`), sans adresse de Service virtuelle : c'est la particularité d'un Service headless.
+- Chaque Pod a un nom DNS stable : `db-0.db.tp-k8s.svc.cluster.local` renvoie la même IP.
+- Les lignes `NXDOMAIN` affichées par `nslookup` sont les essais successifs des domaines de recherche du Pod, sans gravité.
+
+**Remarque sur `busybox` :** avec `busybox:1.36`, `nslookup db-0.db` (nom court) échoue en `NXDOMAIN`, alors que le nom complet fonctionne. Ce comportement vient de `nslookup` et pas du cluster.
+
+**Remarque sécurité :** passer un mot de passe en variable d'environnement sur la ligne de commande est acceptable pour un TP, mais à éviter ailleurs : il reste visible dans l'historique et dans la définition du Pod.
+
+**Points de contrôle :**
+- [x] `nslookup db` renvoie l'adresse IP du Pod `db-0`
+- [x] Le client se connecte avec le nom `db` et obtient `2`
+
