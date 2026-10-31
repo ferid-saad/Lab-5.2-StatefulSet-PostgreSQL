@@ -53,6 +53,8 @@ k exec db-0 -- pg_isready -U appuser -d appdb
 - [x] `pg_isready` répond `accepting connections`
 - [x] Les logs indiquent que le système est prêt à accepter des connexions
 
+![pg-isready](captures/etape1-pg-isready.png)
+
 ### Incident rencontré : Pod `db-0` bloqué en `Pending`
 
 **Symptôme :** `db-0` restait en `Pending` pendant plus de 30 minutes.
