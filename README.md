@@ -173,6 +173,10 @@ k get pvc
 k delete pvc data-db-1
 k get pvc
 ```
+![db1 scaled](captures/etape6-statefulset-scaled.png)
+
+
+![creation db1](captures/etape6-db1.png)
 
 **Constat :**
 - `db-1` n'a démarré qu'après que `db-0` était prêt (création ordonnée).
@@ -183,4 +187,7 @@ k get pvc
 - [x] `db-1` a été créé après `db-0` et avec un PVC distinct
 - [x] La table `taches` n'existait pas dans `db-1`
 - [x] Après la réduction à un réplica, `data-db-1` subsistait jusqu'à sa suppression manuelle
+
+![supprition db1](captures/etape6-supprition-pvc.png)
+
 
