@@ -212,3 +212,13 @@ Kubernetes ne supprime pas automatiquement les PVC d'un StatefulSet, pour évite
 
 Ce lab a montré qu'un StatefulSet associe à chaque Pod une identité stable (nom, volume, nom DNS), ce qui permet à PostgreSQL de conserver ses données malgré la recréation du Pod. Il a aussi mis en évidence trois limites : pas de réplication automatique des données, PVC conservés après une réduction d'échelle, et mot de passe initial non relu après l'initialisation. Deux incidents liés à la pression disque des workers ont été diagnostiqués et corrigés (voir étape 2).
 
+## Nettoyage
+
+```bash
+k delete namespace tp-k8s
+k config set-context --current --namespace=default
+k get pv
+```
+
+La suppression du namespace supprime aussi les PVC, et les PV local-path disparaissent avec eux. Aucun volume de ce lab ne subsiste dans `k get pv`.
+
