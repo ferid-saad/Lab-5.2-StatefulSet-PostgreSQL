@@ -106,3 +106,24 @@ k exec db-0 -- psql -U appuser -d appdb -c "SELECT * FROM taches;"
 
 ![création de table](captures/etape2-creation-table.png)
 
+## Étape 4 : Prouver la persistance
+
+Suppression du Pod `db-0` pour vérifier que le StatefulSet le recrée avec la même identité (même nom, même PVC) et que les données sont conservées.
+
+```bash
+k get pod db-0 -o wide
+k delete pod db-0
+k get pods -w
+k exec db-0 -- pg_isready -U appuser -d appdb
+k exec db-0 -- psql -U appuser -d appdb -c "SELECT * FROM taches;"
+k get pod db-0 -o wide
+k get pvc
+```
+
+**Constat :** le Pod recréé s'appelle toujours `db-0`, s'exécute sur le même nœud et se rattache au même PVC `data-db-0`. Les deux lignes de la table `taches` sont toujours présentes.
+
+**Points de contrôle :**
+- [x] Le Pod recréé porte le même nom `db-0`
+- [x] Les deux lignes sont toujours présentes
+- [x] Le Pod s'exécute sur le même nœud, avec le même PVC `data-db-0`
+
